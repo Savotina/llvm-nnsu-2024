@@ -12,7 +12,6 @@ public:
       : context(context_) {}
   bool VisitFunctionDecl(clang::FunctionDecl *decl) {
     if (decl->isFunctionOrFunctionTemplate()) {
-      outStatusAttrAlwaysInline(decl);
       if (!decl->hasAttr<clang::AlwaysInlineAttr>()) {
         if (auto body = decl->getBody()) {
           if (!findСonditionalStatement(body)) {
@@ -23,8 +22,6 @@ public:
           }
         }
       }
-      outStatusAttrAlwaysInline(decl);
-      llvm::outs() << "==================================\n";
     }
     return true;
   }
@@ -83,6 +80,13 @@ public:
 
   bool ParseArgs(const clang::CompilerInstance &ci,
                  const std::vector<std::string> &args) override {
+    for (const auto &arg : args) {
+      if (arg == "--help") {
+        llvm::outs() << "Adds the always_inline attribute to functions without "
+                        "conditions\n";
+        return false;
+      }
+    }
     return true;
   }
 };
