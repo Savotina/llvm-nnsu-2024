@@ -1,4 +1,9 @@
 // RUN: %clang_cc1 -load %llvmshlibdir/AddAttrAlwaysInlinePlugin%pluginext\
+// RUN: -plugin add_attr_always_inline_plugin\
+// RUN: -plugin-arg-add_attr_always_inline_plugin --help %s 2>&1 | FileCheck %s --check-prefix=CHECK-HELP
+// CHECK-HELP: Adds the always_inline attribute to functions without conditions
+
+// RUN: %clang_cc1 -load %llvmshlibdir/AddAttrAlwaysInlinePlugin%pluginext\
 // RUN: -add-plugin add_attr_always_inline_plugin %s\
 // RUN: -ast-dump %s -ast-dump-filter test | FileCheck %s
 

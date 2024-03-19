@@ -11,17 +11,16 @@ public:
   explicit AddAttrAlwaysInlineVisitor(clang::ASTContext *context_)
       : context(context_) {}
   bool VisitFunctionDecl(clang::FunctionDecl *decl) {
-    if (decl->isFunctionOrFunctionTemplate()) {
-      if (!decl->hasAttr<clang::AlwaysInlineAttr>()) {
-        if (auto body = decl->getBody()) {
-          if (!findСonditionalStatement(body)) {
-            if (auto loc = decl->getSourceRange(); loc.isValid()) {
-              decl->addAttr(
-                  clang::AlwaysInlineAttr::Create(*context, loc.getBegin()));
-            }
-          }
-        }
-      }
+    if (!decl->isFunctionOrFunctionTemplate())
+      return true;
+    if (decl->hasAttr<clang::AlwaysInlineAttr>())
+      return true;
+    if (auto body = decl->getBody()) {
+      if (findСonditionalStatement(body))
+        return true;
+      if (auto loc = decl->getSourceRange(); loc.isValid())
+        decl->addAttr(
+            clang::AlwaysInlineAttr::Create(*context, loc.getBegin()));
     }
     return true;
   }
@@ -84,7 +83,6 @@ public:
       if (arg == "--help") {
         llvm::outs() << "Adds the always_inline attribute to functions without "
                         "conditions\n";
-        return false;
       }
     }
     return true;
