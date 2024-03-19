@@ -1,60 +1,33 @@
 // RUN: %clang_cc1 -load %llvmshlibdir/AddAttrAlwaysInlinePlugin%pluginext\
-// RUN: -plugin add_attr_always_inline_plugin %s 1>&1 | FileCheck %s
+// RUN: -add-plugin add_attr_always_inline_plugin %s\
+// RUN: -ast-dump %s -ast-dump-filter test | FileCheck %s
 
 namespace {
-// CHECK: function: square
-// CHECK: attr status (always_inline): false
-// CHECK: function: square
-// CHECK: attr status (always_inline): true
-// CHECK: ==================================
-int square(int value) { return value * value; }
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testSquare 'int \(int\)'}}
+int testSquare(int value) { return value * value; }
 
-// CHECK: function: diff
-// CHECK: attr status (always_inline): false
-// CHECK: function: diff
-// CHECK: attr status (always_inline): true
-// CHECK: ==================================
-int diff(int valueOne, int valueTwo) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testDiff 'int \(int, int\)'}}
+int testDiff(int valueOne, int valueTwo) {
   {} {} {{} {}} {} {{{}} {} {}} {} {
     { return valueOne - valueTwo; }
   }
 }
 
-// CHECK: function: max
-// CHECK: attr status (always_inline): false
-// CHECK: function: max
-// CHECK: attr status (always_inline): true
-// CHECK: ==================================
-template <typename T> T max(T valueOne, T valueTwo) {
-  return valueOne > valueTwo ? valueOne : valueTwo;
-}
-
-// CHECK: function: emptyFunc
-// CHECK: attr status (always_inline): true
-// CHECK: function: emptyFunc
-// CHECK: attr status (always_inline): true
-// CHECK: ==================================
-__attribute__((always_inline)) void emptyFunc() {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testEmptyFunc 'void \(\)'}}
+void testEmptyFunc() {
   {} {{}} {{} {} {{{{}}}}} {}
 }
 
-// CHECK: function: funcTestIfStmt
-// CHECK: attr status (always_inline): false
-// CHECK: function: funcTestIfStmt
-// CHECK: attr status (always_inline): false
-// CHECK: ==================================
-bool funcTestIfStmt(int value) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testIfStmt 'bool \(int\)'}}
+bool testIfStmt(int value) {
   if (value % 2)
     return false;
   return true;
 }
+// CHECK-NOT: `-AlwaysInlineAttr {{0[xX][0-9a-fA-F]+ <(line|col):([0-9]+:[0-9]|[0-9]+)> Implicit always_inline}}
 
-// CHECK: function: funcTestSwitchStmt
-// CHECK: attr status (always_inline): false
-// CHECK: function: funcTestSwitchStmt
-// CHECK: attr status (always_inline): false
-// CHECK: ==================================
-int funcTestSwitchStmt(int value) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testSwitchStmt 'int \(int\)'}}
+int testSwitchStmt(int value) {
   switch (value) {
   case 1:
     return value;
@@ -66,38 +39,30 @@ int funcTestSwitchStmt(int value) {
     return value;
   }
 }
+// CHECK-NOT: `-AlwaysInlineAttr {{0[xX][0-9a-fA-F]+ <(line|col):([0-9]+:[0-9]|[0-9]+)> Implicit always_inline}}
 
-// CHECK: function: funcTestWhileStmt
-// CHECK: attr status (always_inline): false
-// CHECK: function: funcTestWhileStmt
-// CHECK: attr status (always_inline): false
-// CHECK: ==================================
-void funcTestWhileStmt(int value) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testWhileStmt 'void \(int\)'}}
+void testWhileStmt(int value) {
   {
     while (value--) {
     }
   }
   {} {}
 }
+// CHECK-NOT: `-AlwaysInlineAttr {{0[xX][0-9a-fA-F]+ <(line|col):([0-9]+:[0-9]|[0-9]+)> Implicit always_inline}}
 
-// CHECK: function: funcTestDoStmt
-// CHECK: attr status (always_inline): false
-// CHECK: function: funcTestDoStmt
-// CHECK: attr status (always_inline): false
-// CHECK: ==================================
-void funcTestDoStmt(int value) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testDoStmt 'void \(int\)'}}
+void testDoStmt(int value) {
   do {
     --value;
   } while (value);
 }
+// CHECK-NOT: `-AlwaysInlineAttr {{0[xX][0-9a-fA-F]+ <(line|col):([0-9]+:[0-9]|[0-9]+)> Implicit always_inline}}
 
-// CHECK: function: funcTestForStmt
-// CHECK: attr status (always_inline): false
-// CHECK: function: funcTestForStmt
-// CHECK: attr status (always_inline): false
-// CHECK: ==================================
-void funcTestForStmt(unsigned value) {
+// CHECK: FunctionDecl {{0[xX][0-9a-fA-F]+ <.+tests\.cpp:([0-9]+:[0-9]|[0-9]+), (line|col):([0-9]+:[0-9]|[0-9]+)> (line|col):([0-9]+:[0-9]|[0-9]+) testForStmt 'void \(unsigned int\)'}}
+void testForStmt(unsigned value) {
   for (unsigned i = 0; i < value; ++i) {
   }
 }
+// CHECK-NOT: `-AlwaysInlineAttr {{0[xX][0-9a-fA-F]+ <(line|col):([0-9]+:[0-9]|[0-9]+)> Implicit always_inline}}
 } // namespace
