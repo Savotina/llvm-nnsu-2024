@@ -20,24 +20,23 @@ public:
       dbgLoc = machFunc.front().begin()->getDebugLoc();
 
       if (tgtInstrInfo) {
-        unsigned instrCount = 0;
-
         for (auto BBIter = machFunc.begin(); BBIter != machFunc.end();
              ++BBIter) {
           MachineBasicBlock &machBasicBlock = *BBIter;
 
           if (!machBasicBlock.empty()) {
+            unsigned instrCount = 0;
             for (auto InstrIter = machBasicBlock.begin();
                  InstrIter != machBasicBlock.end(); ++InstrIter) {
               instrCount++;
             }
+
+            BuildMI(machBasicBlock, machBasicBlock.getFirstTerminator(), dbgLoc,
+                    tgtInstrInfo->get(X86::ADD64ri32))
+                .addImm(instrCount)
+                .addExternalSymbol("ic");
           }
         }
-
-        BuildMI(machFunc.back(), machFunc.back().getFirstTerminator(), dbgLoc,
-                tgtInstrInfo->get(X86::MOV64mi32))
-            .addImm(instrCount)
-            .addExternalSymbol("ic");
       }
     }
 

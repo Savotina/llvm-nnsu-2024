@@ -213,6 +213,18 @@ body:             |
     MOV32mr $rbp, 1, $noreg, -12, $noreg, killed renamable $edx :: (store (s32) into %ir.c.addr)
     MOV32mi $rbp, 1, $noreg, -4, $noreg, 0 :: (store (s32) into %ir.d)
     MOV32mi $rbp, 1, $noreg, -8, $noreg, 0 :: (store (s32) into %ir.i)
+
+    ; CHECK: frame-setup PUSH64r killed $rbp, implicit-def $rsp, implicit $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_offset 16
+    ; CHECK: frame-setup CFI_INSTRUCTION offset $rbp, -16
+    ; CHECK: $rbp = frame-setup MOV64rr $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_register $rbp
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -20, $noreg, killed renamable $edi :: (store (s32) into %ir.a.addr)
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -16, $noreg, killed renamable $esi :: (store (s32) into %ir.b.addr)
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -12, $noreg, killed renamable $edx :: (store (s32) into %ir.c.addr)
+    ; CHECK: MOV32mi $rbp, 1, $noreg, -4, $noreg, 0 :: (store (s32) into %ir.d)
+    ; CHECK: MOV32mi $rbp, 1, $noreg, -8, $noreg, 0 :: (store (s32) into %ir.i)
+    ; CHECK: ADD64ri32 10, &ic, implicit-def $eflags
   
   bb.1.for.cond:
     successors: %bb.6(0x40000000), %bb.2(0x40000000)
@@ -220,6 +232,11 @@ body:             |
     renamable $eax = MOV32rm $rbp, 1, $noreg, -8, $noreg :: (load (s32) from %ir.i)
     CMP32rm killed renamable $eax, $rbp, 1, $noreg, -20, $noreg, implicit-def $eflags :: (load (s32) from %ir.a.addr)
     JCC_1 %bb.6, 13, implicit killed $eflags
+
+    ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -8, $noreg :: (load (s32) from %ir.i)
+    ; CHECK: CMP32rm killed renamable $eax, $rbp, 1, $noreg, -20, $noreg, implicit-def $eflags :: (load (s32) from %ir.a.addr)
+    ; CHECK: ADD64ri32 3, &ic, implicit-def $eflags
+    ; CHECK: JCC_1 %bb.6, 13, implicit killed $eflags
   
   bb.2.for.body:
     successors: %bb.4(0x40000000), %bb.3(0x40000000)
@@ -228,6 +245,11 @@ body:             |
     CMP32rm killed renamable $eax, $rbp, 1, $noreg, -16, $noreg, implicit-def $eflags :: (load (s32) from %ir.b.addr)
     JCC_1 %bb.4, 13, implicit killed $eflags
 
+    ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.d)
+    ; CHECK: CMP32rm killed renamable $eax, $rbp, 1, $noreg, -16, $noreg, implicit-def $eflags :: (load (s32) from %ir.b.addr)
+    ; CHECK: ADD64ri32 3, &ic, implicit-def $eflags
+    ; CHECK: JCC_1 %bb.4, 13, implicit killed $eflags
+
   bb.3.if.then:
     successors: %bb.4(0x80000000)
   
@@ -235,10 +257,18 @@ body:             |
     renamable $eax = ADD32rm killed renamable $eax, $rbp, 1, $noreg, -4, $noreg, implicit-def dead $eflags :: (load (s32) from %ir.d)
     MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.d)
 
+    ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -12, $noreg :: (load (s32) from %ir.c.addr)
+    ; CHECK: renamable $eax = ADD32rm killed renamable $eax, $rbp, 1, $noreg, -4, $noreg, implicit-def dead $eflags :: (load (s32) from %ir.d)
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.d)
+    ; CHECK: ADD64ri32 3, &ic, implicit-def $eflags
+
   bb.4.if.end:
     successors: %bb.5(0x80000000)
   
     JMP_1 %bb.5
+    
+    ; CHECK: ADD64ri32 1, &ic, implicit-def $eflags
+    ; CHECK: JMP_1 %bb.5
   
   bb.5.for.inc:
     successors: %bb.1(0x80000000)
@@ -247,6 +277,12 @@ body:             |
     renamable $eax = ADD32ri killed renamable $eax, 1, implicit-def dead $eflags
     MOV32mr $rbp, 1, $noreg, -8, $noreg, killed renamable $eax :: (store (s32) into %ir.i)
     JMP_1 %bb.1
+
+    ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -8, $noreg :: (load (s32) from %ir.i)
+    ; CHECK: renamable $eax = ADD32ri killed renamable $eax, 1, implicit-def dead $eflags
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -8, $noreg, killed renamable $eax :: (store (s32) into %ir.i)
+    ; CHECK: ADD64ri32 4, &ic, implicit-def $eflags
+    ; CHECK: JMP_1 %bb.1
 
   bb.6.for.end:
     renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.d)
@@ -257,7 +293,7 @@ body:             |
     ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.d)
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: MOV64mi32 28, &ic
+    ; CHECK: ADD64ri32 4, &ic, implicit-def $eflags
     ; CHECK: RET64 implicit $eax
 
 ...
@@ -350,6 +386,30 @@ body:             |
     renamable $rax = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
     CMP32mi killed renamable $rax, 1, $noreg, 0, $noreg, 17, implicit-def $eflags :: (load (s32) from %ir.4)
     JCC_1 %bb.2, 13, implicit killed $eflags
+
+    ; CHECK: frame-setup PUSH64r killed $rbp, implicit-def $rsp, implicit $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_offset 16
+    ; CHECK: frame-setup CFI_INSTRUCTION offset $rbp, -16
+    ; CHECK: $rbp = frame-setup MOV64rr $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_register $rbp
+    ; CHECK: MOV64mr $rbp, 1, $noreg, -16, $noreg, killed renamable $rdi :: (store (s64) into %ir.tevirp.addr)
+    ; CHECK: MOV32mi $rbp, 1, $noreg, -4, $noreg, 0 :: (store (s32) into %ir.res)
+    ; CHECK: renamable $rax = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
+    ; CHECK: renamable $eax = MOV32rm killed renamable $rax, 1, $noreg, 0, $noreg :: (load (s32) from %ir.0)
+    ; CHECK: renamable $ecx = MOV32ri 10
+    ; CHECK: CDQ implicit-def $eax, implicit-def $edx, implicit $eax
+    ; CHECK: IDIV32r killed renamable $ecx, implicit-def dead $eax, implicit-def $edx, implicit-def dead $eflags, implicit $eax, implicit $edx
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -20, $noreg, killed renamable $edx :: (store (s32) into %ir.privet)
+    ; CHECK: renamable $rcx = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
+    ; CHECK: renamable $eax = MOV32rm renamable $rcx, 1, $noreg, 0, $noreg :: (load (s32) from %ir.2)
+    ; CHECK: renamable $esi = MOV32ri 10
+    ; CHECK: CDQ implicit-def $eax, implicit-def $edx, implicit $eax
+    ; CHECK: IDIV32r killed renamable $esi, implicit-def $eax, implicit-def dead $edx, implicit-def dead $eflags, implicit $eax, implicit $edx
+    ; CHECK: MOV32mr killed renamable $rcx, 1, $noreg, 0, $noreg, killed renamable $eax :: (store (s32) into %ir.2)
+    ; CHECK: renamable $rax = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
+    ; CHECK: CMP32mi killed renamable $rax, 1, $noreg, 0, $noreg, 17, implicit-def $eflags :: (load (s32) from %ir.4)
+    ; CHECK: ADD64ri32 22, &ic, implicit-def $eflags
+    ; CHECK: JCC_1 %bb.2, 13, implicit killed $eflags
   
   bb.1.if.then:
     successors: %bb.3(0x80000000)
@@ -357,6 +417,11 @@ body:             |
     renamable $eax = MOV32rm $rbp, 1, $noreg, -20, $noreg :: (load (s32) from %ir.privet)
     MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.res)
     JMP_1 %bb.3
+
+    ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -20, $noreg :: (load (s32) from %ir.privet)
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.res)
+    ; CHECK: ADD64ri32 3, &ic, implicit-def $eflags
+    ; CHECK: JMP_1 %bb.3
   
   bb.2.if.else:
     successors: %bb.3(0x80000000)
@@ -364,6 +429,11 @@ body:             |
     renamable $rax = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
     renamable $eax = MOV32rm killed renamable $rax, 1, $noreg, 0, $noreg :: (load (s32) from %ir.7)
     MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.res)
+
+    ; CHECK: renamable $rax = MOV64rm $rbp, 1, $noreg, -16, $noreg :: (load (s64) from %ir.tevirp.addr)
+    ; CHECK: renamable $eax = MOV32rm killed renamable $rax, 1, $noreg, 0, $noreg :: (load (s32) from %ir.7)
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -4, $noreg, killed renamable $eax :: (store (s32) into %ir.res)
+    ; CHECK: ADD64ri32 3, &ic, implicit-def $eflags
 
   bb.3.if.end:
     renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.res)
@@ -374,7 +444,7 @@ body:             |
     ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.res)
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: MOV64mi32 32, &ic
+    ; CHECK: ADD64ri32 4, &ic, implicit-def $eflags
     ; CHECK: RET64 implicit $eax
 
 ...
@@ -451,11 +521,25 @@ body:             |
     MOV8mi $rbp, 1, $noreg, -1, $noreg, 0 :: (store (s8) into %ir.res)
     CMP32mi $rbp, 1, $noreg, -8, $noreg, 0, implicit-def $eflags :: (load (s32) from %ir.par.addr)
     JCC_1 %bb.2, 14, implicit killed $eflags
+
+    ; CHECK: frame-setup PUSH64r killed $rbp, implicit-def $rsp, implicit $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_offset 16
+    ; CHECK: frame-setup CFI_INSTRUCTION offset $rbp, -16
+    ; CHECK: $rbp = frame-setup MOV64rr $rsp
+    ; CHECK: frame-setup CFI_INSTRUCTION def_cfa_register $rbp
+    ; CHECK: MOV32mr $rbp, 1, $noreg, -8, $noreg, killed renamable $edi :: (store (s32) into %ir.par.addr)
+    ; CHECK: MOV8mi $rbp, 1, $noreg, -1, $noreg, 0 :: (store (s8) into %ir.res)
+    ; CHECK: CMP32mi $rbp, 1, $noreg, -8, $noreg, 0, implicit-def $eflags :: (load (s32) from %ir.par.addr)
+    ; CHECK: ADD64ri32 9, &ic, implicit-def $eflags
+    ; CHECK: JCC_1 %bb.2, 14, implicit killed $eflags
   
   bb.1.if.then:
     successors: %bb.2(0x80000000)
   
     MOV8mi $rbp, 1, $noreg, -1, $noreg, 1 :: (store (s8) into %ir.res)
+
+    ; CHECK: MOV8mi $rbp, 1, $noreg, -1, $noreg, 1 :: (store (s8) into %ir.res)
+    ; CHECK: ADD64ri32 1, &ic, implicit-def $eflags
   
   bb.2.if.end:
     renamable $al = MOV8rm $rbp, 1, $noreg, -1, $noreg :: (load (s8) from %ir.res)
@@ -470,7 +554,7 @@ body:             |
     ; CHECK: renamable $eax = MOVZX32rr8 killed renamable $al
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: MOV64mi32 16, &ic
+    ; CHECK: ADD64ri32 6, &ic, implicit-def $eflags
     ; CHECK: RET64 implicit $eax
 
 ...
