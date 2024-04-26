@@ -257,8 +257,7 @@ body:             |
     ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.d)
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: %0:gr64 = ADD64ri32 %0, 28, implicit-def $eflags
-    ; CHECK: MOV64mi32 %0, 1, &ic
+    ; CHECK: MOV64mi32 28, &ic
     ; CHECK: RET64 implicit $eax
 
 ...
@@ -375,8 +374,7 @@ body:             |
     ; CHECK: renamable $eax = MOV32rm $rbp, 1, $noreg, -4, $noreg :: (load (s32) from %ir.res)
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: %0:gr64 = ADD64ri32 %0, 32, implicit-def $eflags
-    ; CHECK: MOV64mi32 %0, 1, &ic
+    ; CHECK: MOV64mi32 32, &ic
     ; CHECK: RET64 implicit $eax
 
 ...
@@ -472,8 +470,7 @@ body:             |
     ; CHECK: renamable $eax = MOVZX32rr8 killed renamable $al
     ; CHECK: $rbp = frame-destroy POP64r implicit-def $rsp, implicit $rsp
     ; CHECK: frame-destroy CFI_INSTRUCTION def_cfa $rsp, 8
-    ; CHECK: %0:gr64 = ADD64ri32 %0, 16, implicit-def $eflags
-    ; CHECK: MOV64mi32 %0, 1, &ic
+    ; CHECK: MOV64mi32 16, &ic
     ; CHECK: RET64 implicit $eax
 
 ...

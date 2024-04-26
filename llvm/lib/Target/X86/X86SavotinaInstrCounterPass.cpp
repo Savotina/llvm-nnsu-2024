@@ -21,8 +21,6 @@ public:
 
       if (tgtInstrInfo) {
         unsigned instrCount = 0;
-        unsigned regCount =
-            machFunc.getRegInfo().createVirtualRegister(&X86::GR64RegClass);
 
         for (auto BBIter = machFunc.begin(); BBIter != machFunc.end();
              ++BBIter) {
@@ -37,14 +35,8 @@ public:
         }
 
         BuildMI(machFunc.back(), machFunc.back().getFirstTerminator(), dbgLoc,
-                tgtInstrInfo->get(X86::ADD64ri32), regCount)
-            .addReg(regCount)
-            .addImm(instrCount);
-
-        BuildMI(machFunc.back(), machFunc.back().getFirstTerminator(), dbgLoc,
                 tgtInstrInfo->get(X86::MOV64mi32))
-            .addReg(regCount)
-            .addImm(1)
+            .addImm(instrCount)
             .addExternalSymbol("ic");
       }
     }
