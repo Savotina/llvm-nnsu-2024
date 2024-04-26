@@ -44,7 +44,7 @@ public:
   }
 };
 
-INITIALIZE_PASS(
-    X86SavotinaInstrCounterPass, "x86-savotina-instr-counter",
+static RegisterPass<X86SavotinaInstrCounterPass> X(
+    "x86-savotina-instr-counter",
     "This pass let to instrCount the X86 machine instructions' number", false,
-    false)
+    false);

@@ -1,4 +1,5 @@
-# RUN: llc -march=x86-64 -simplify-mir -run-pass=x86-savotina-instr-counter %s -o - | FileCheck %s
+# RUN: llc -march=x86-64 -simplify-mir --load=%llvmshlibdir/X86SavotinaInstrCounterPass%shlibext -run-pass=x86-savotina-instr-counter %s -o - | FileCheck %s
+
 --- |
   ; ModuleID = 'tests.ll'
   source_filename = "tests.cpp"
