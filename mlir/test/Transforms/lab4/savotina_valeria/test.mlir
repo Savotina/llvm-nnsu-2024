@@ -67,4 +67,27 @@ module attributes {dlti.dl_spec = #dlti.dl_spec<#dlti.dl_entry<!llvm.ptr<272>, d
     // CHECK-NEXT: %2 = math.fma %0, %arg1, %1 : f64
     // CHECK-NEXT: llvm.return %2 : f64
   }
+
+  // CHECK-LABEL: @_Z8funcFiveddd
+  llvm.func local_unnamed_addr @_Z8funcFiveddd(%arg0: f64 {llvm.noundef}, %arg1: f64 {llvm.noundef}, %arg2: f64 {llvm.noundef}) -> (f64 {llvm.noundef}) attributes {memory = #llvm.memory_effects<other = none, argMem = none, inaccessibleMem = none>, passthrough = ["mustprogress", "nofree", "norecurse", "nosync", "nounwind", "willreturn", ["uwtable", "2"], ["min-legal-vector-width", "0"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"], ["target-features", "+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87"], ["tune-cpu", "generic"]]} {
+    %0 = llvm.fmul %arg0, %arg1  : f64
+    %1 = llvm.fadd %0, %arg2  : f64
+    llvm.return %1 : f64
+
+    // CHECK: %0 = math.fma %arg0, %arg1, %arg2 : f64
+    // CHECK-NEXT: llvm.return %0 : f64
+  }
+
+  // CHECK-LABEL: @_Z7funcSixddd
+  llvm.func local_unnamed_addr @_Z7funcSixddd(%arg0: f64 {llvm.noundef}, %arg1: f64 {llvm.noundef}, %arg2: f64 {llvm.noundef}) -> (f64 {llvm.noundef}) attributes {memory = #llvm.memory_effects<other = none, argMem = none, inaccessibleMem = none>, passthrough = ["mustprogress", "nofree", "norecurse", "nosync", "nounwind", "willreturn", ["uwtable", "2"], ["min-legal-vector-width", "0"], ["no-trapping-math", "true"], ["stack-protector-buffer-size", "8"], ["target-cpu", "x86-64"], ["target-features", "+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87"], ["tune-cpu", "generic"]]} {
+    %0 = llvm.fmul %arg0, %arg1  : f64
+    %1 = llvm.fadd %0, %arg2  : f64
+    %2 = llvm.fadd %0, %1  : f64
+    llvm.return %2 : f64
+
+    // CHECK: %0 = llvm.fmul %arg0, %arg1  : f64
+    // CHECK-NEXT: %1 = llvm.fadd %0, %arg2  : f64
+    // CHECK-NEXT: %2 = llvm.fadd %0, %1  : f64
+    // CHECK-NEXT: llvm.return %2 : f64
+  }
 }
